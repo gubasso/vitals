@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 from returns.result import Success
 
-from tests.conftest import write_config
+from tests.conftest import plain, write_config
 from vitals import cli
 from vitals.adapters.fake_source import FakeSource
 from vitals.collectors.snapshot import collect_snapshot
@@ -33,12 +33,13 @@ def vitals(*args: str, fake: bool = True) -> subprocess.CompletedProcess[str]:
     )
 
 
-def test_help_lists_every_flag_and_view() -> None:
-    """--help names each flag and both views, and exits 0."""
+def test_help_lists_every_flag_and_view(terminal: str) -> None:
+    """--help names each flag and both views, and exits 0, with or without forced color."""
+    del terminal
     result = vitals("--help")
     assert result.returncode == 0
     for word in ("--view", "--interval", "--theme", "--once", "--version", "overview", "processes"):
-        assert word in result.stdout
+        assert word in plain(result.stdout)
 
 
 def test_an_unknown_view_exits_64() -> None:

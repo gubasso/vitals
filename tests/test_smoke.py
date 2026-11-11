@@ -4,6 +4,7 @@ import subprocess
 import sys
 from importlib.metadata import version
 
+from tests.conftest import plain
 from vitals import cli
 
 
@@ -17,11 +18,12 @@ def test_the_package_imports() -> None:
     assert callable(cli.main)
 
 
-def test_help_exits_zero() -> None:
-    """`vitals --help` prints the usage and exits 0."""
+def test_help_exits_zero(terminal: str) -> None:
+    """`vitals --help` prints the usage and exits 0, with or without forced color."""
+    del terminal
     result = run("vitals", "--help")
     assert result.returncode == 0
-    assert "Usage: vitals" in result.stdout
+    assert "Usage: vitals" in plain(result.stdout)
 
 
 def test_version_prints_the_package_version() -> None:
@@ -31,8 +33,9 @@ def test_version_prints_the_package_version() -> None:
     assert result.stdout.strip() == f"vitals {version('vitals')}"
 
 
-def test_module_answers_help() -> None:
-    """`python -m vitals --help` runs the same entry point."""
+def test_module_answers_help(terminal: str) -> None:
+    """`python -m vitals --help` runs the same entry point, with or without forced color."""
+    del terminal
     result = run(sys.executable, "-m", "vitals", "--help")
     assert result.returncode == 0
-    assert "Usage: vitals" in result.stdout
+    assert "Usage: vitals" in plain(result.stdout)

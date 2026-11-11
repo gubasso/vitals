@@ -1,5 +1,6 @@
 """Point the XDG folders of every test at its own temporary home."""
 
+import re
 lazy from pathlib import Path
 
 import pytest
@@ -21,3 +22,21 @@ def write_config(home: Path, text: str) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
     return path
+
+
+_ESCAPE = re.compile(r"\x1b\[[0-9;]*m")
+
+
+def plain(text: str) -> str:
+    """Return terminal output without its color codes, which a CI runner forces on."""
+    return _ESCAPE.sub("", text)
+
+
+@pytest.fixture(params=["plain", "forced-color"])
+def terminal(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch) -> str:
+    """Run a test twice: once as a terminal sees it, once as GitHub Actions forces color."""
+    if request.param == "forced-color":
+        monkeypatch.setenv("GITHUB_ACTIONS", "true")
+    else:
+        monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
+    return str(request.param)
