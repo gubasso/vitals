@@ -1,0 +1,16 @@
+# Files that a tool generates follow their generator, and no check judges
+# their words: the locks that uv and nix write, the snapshots that the UI tests
+# write, and the files that release-kit and spec-driven-docs render or record.
+[files]
+extend-exclude = [
+  "uv.lock",
+  "flake.lock",
+  "tests/**/__snapshots__/",
+  "GLOSSARY.md",
+  ".release-kit/manifest.json",
+  ".spec-driven-docs/manifest.json",
+]
+
+[default.extend-words]
+# CPY is the ruff rule prefix of copyright notices, as in CPY001.
+CPY = "CPY"

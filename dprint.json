@@ -1,0 +1,24 @@
+{
+  "markdown": {
+    "lineWidth": 100,
+    "textWrap": "never"
+  },
+  "includes": [
+    "**/*.md"
+  ],
+  "excludes": [
+    ".git",
+    ".direnv",
+    ".venv",
+    "result",
+    ".spec-driven-docs",
+    "/AGENTS.md",
+    "**/TEMPLATE-*.md",
+    "GLOSSARY.md",
+    "CHANGELOG.md",
+    "tests/**/__snapshots__/**"
+  ],
+  "plugins": [
+    "https://plugins.dprint.dev/markdown-0.22.0.wasm"
+  ]
+}

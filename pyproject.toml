@@ -4,10 +4,20 @@ version = "0.1.0"
 description = "A terminal dashboard of the machine's vital signs: CPU, GPU, memory, disks, and temperatures."
 readme = "README.md"
 requires-python = ">=3.15"
-dependencies = []
+dependencies = [
+    "nvidia-ml-py>=13.615.71",
+    "platformdirs>=4.14.5",
+    "psutil>=7.2.2",
+    "pydantic>=2.14.3",
+    "pydantic-settings>=2.16.2",
+    "returns>=0.30.0",
+    "textual>=8.2.8",
+    "textual-plot>=0.10.1",
+    "typer>=0.29.1",
+]
 
 [project.scripts]
-vitals = "vitals:main"
+vitals = "vitals.cli:main"
 
 [build-system]
 requires = ["uv_build>=0.13.5,<0.14.0"]
@@ -16,3 +26,66 @@ build-backend = "uv_build"
 [tool.uv]
 # 0.13.7 is the first uv that installs CPython 3.15.2, the patch in .python-version.
 required-version = ">=0.13.7"
+
+[dependency-groups]
+dev = [
+    "mypy>=2.4.1",
+    "pip-audit>=2.10.1",
+    "pytest>=9.2.0",
+    "pytest-asyncio>=1.4.1.post1",
+    "pytest-textual-snapshot>=1.0.0",
+    "types-psutil>=7.2.2.20261111",
+]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    # ruff format owns the trailing commas; the rule fights the formatter.
+    "COM812",
+    # Pairs of docstring rules that exclude each other: keep D211 and D212.
+    "D203",
+    "D213",
+    # The root LICENSE covers every file, so no file repeats a copyright notice.
+    "CPY001",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# pytest asserts with `assert`, and a test states its expected numbers inline.
+"tests/**" = ["S101", "PLR2004"]
+
+[tool.mypy]
+strict = true
+warn_unreachable = true
+files = ["src", "tests"]
+enable_error_code = [
+    "exhaustive-match",
+    "explicit-override",
+    "possibly-undefined",
+    "redundant-expr",
+    "truthy-bool",
+    "truthy-iterable",
+    "ignore-without-code",
+    "unused-awaitable",
+    "deprecated",
+    "mutable-override",
+    "redundant-self",
+    "unimported-reveal",
+    "explicit-any",
+]
+plugins = ["pydantic.mypy", "returns.contrib.mypy.returns_plugin"]
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers -m 'not host'"
+markers = ["host: reads the real machine; run by hand with -m host"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"

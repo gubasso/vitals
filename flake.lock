@@ -16,9 +16,221 @@
         "type": "github"
       }
     },
+    "pyproject-build-systems": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "pyproject-nix": [
+          "pyproject-nix"
+        ],
+        "uv2nix": [
+          "uv2nix"
+        ]
+      },
+      "locked": {
+        "lastModified": 1794012432,
+        "narHash": "sha256-zBKFTg7tEGApNt+CEKI5+WNNomD5MZqYNBr+r6/Bmdg=",
+        "owner": "pyproject-nix",
+        "repo": "build-system-pkgs",
+        "rev": "bdbc5f8dd2ad6136bb2ccecb14f6ec343965b194",
+        "type": "github"
+      },
+      "original": {
+        "owner": "pyproject-nix",
+        "repo": "build-system-pkgs",
+        "type": "github"
+      }
+    },
+    "pyproject-nix": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793820880,
+        "narHash": "sha256-NUMabnvaL/0Ah9WM9pBMXEp+dQjMSYjezZ/fNjXouLQ=",
+        "owner": "pyproject-nix",
+        "repo": "pyproject.nix",
+        "rev": "d43f0e74444c1f266c640fc49ce6ce6fb69d33c3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "pyproject-nix",
+        "repo": "pyproject.nix",
+        "type": "github"
+      }
+    },
+    "release-kit": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "rust-overlay": "rust-overlay",
+        "spec-driven-docs": [
+          "spec-driven-docs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1794408071,
+        "narHash": "sha256-5ZqsDFoB8AEGgf7V/AtyR3G0CQkndl3ZbybBRwSqY0E=",
+        "owner": "gubasso",
+        "repo": "release-kit",
+        "rev": "5ff1de7d188dbdd00f7b833cfdc5a8be282ddc1b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "gubasso",
+        "ref": "v0.9.8",
+        "repo": "release-kit",
+        "type": "github"
+      }
+    },
+    "release-kit_2": {
+      "inputs": {
+        "nixpkgs": [
+          "spec-driven-docs",
+          "nixpkgs"
+        ],
+        "rust-overlay": "rust-overlay_2",
+        "spec-driven-docs": [
+          "spec-driven-docs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793150271,
+        "narHash": "sha256-4UKb+bbNQJOomxwfn5PPE5tMVtxwx0LGwOxc5f/Qf1o=",
+        "owner": "gubasso",
+        "repo": "release-kit",
+        "rev": "0543ebe2a2614fe3dfcdbdae1bf352b1a5835512",
+        "type": "github"
+      },
+      "original": {
+        "owner": "gubasso",
+        "ref": "v0.9.1",
+        "repo": "release-kit",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "pyproject-build-systems": "pyproject-build-systems",
+        "pyproject-nix": "pyproject-nix",
+        "release-kit": "release-kit",
+        "spec-driven-docs": "spec-driven-docs",
+        "uv2nix": "uv2nix"
+      }
+    },
+    "rust-overlay": {
+      "inputs": {
+        "nixpkgs": [
+          "release-kit",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1787834454,
+        "narHash": "sha256-jXSvqn04IOecJCvSvl8+g3PsbDVNP6qKs6dKUs/b16k=",
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "rev": "dc2fd1acc537f3583744e1373597a5731ff7a6e3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "type": "github"
+      }
+    },
+    "rust-overlay_2": {
+      "inputs": {
+        "nixpkgs": [
+          "spec-driven-docs",
+          "release-kit",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1787834454,
+        "narHash": "sha256-jXSvqn04IOecJCvSvl8+g3PsbDVNP6qKs6dKUs/b16k=",
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "rev": "dc2fd1acc537f3583744e1373597a5731ff7a6e3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "type": "github"
+      }
+    },
+    "rust-overlay_3": {
+      "inputs": {
+        "nixpkgs": [
+          "spec-driven-docs",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1787627053,
+        "narHash": "sha256-QdVaU2WSCKsxZ0sBDIRnaaukp6Z5IMUE0gDEDoSRJd0=",
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "rev": "132a10336af9ae819bdf640c0dd1c789b12d7107",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "type": "github"
+      }
+    },
+    "spec-driven-docs": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "release-kit": "release-kit_2",
+        "rust-overlay": "rust-overlay_3"
+      },
+      "locked": {
+        "lastModified": 1794289952,
+        "narHash": "sha256-ZGXAA8iZVIrsF9mohtdCyAlG32l14RoSCxqVqxf+KE4=",
+        "owner": "gubasso",
+        "repo": "spec-driven-docs",
+        "rev": "c5ffceeb1604fa4773a668e6fae7d44e543aa00e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "gubasso",
+        "ref": "v0.15.1",
+        "repo": "spec-driven-docs",
+        "type": "github"
+      }
+    },
+    "uv2nix": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "pyproject-nix": [
+          "pyproject-nix"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793272761,
+        "narHash": "sha256-3CE1CEwprYlHRlRVkXDkhqec0jjF9Cti7tdk8vVDsCM=",
+        "owner": "pyproject-nix",
+        "repo": "uv2nix",
+        "rev": "c361746c7d630d98b972378290547c8d35542a7a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "pyproject-nix",
+        "repo": "uv2nix",
+        "type": "github"
       }
     }
   },

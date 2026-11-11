@@ -1,0 +1,41 @@
+# CI repeats the two hook stages of .pre-commit-config.yaml and holds no check
+# of its own, so a push that passed its hooks passes CI.
+#
+# The runner is a host, so it gets the host tools that the project needs, as a
+# developer machine does: Nix for the devshell, and uv, which installs the
+# Python of .python-version and the venv from uv.lock. The devshell holds
+# neither uv nor a Python, and `nix develop` keeps the PATH of the runner, so
+# `uv run` works inside it.
+name: ci
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  hooks:
+    runs-on: ubuntu-latest
+    env:
+      # A CI checkout is detached on the main worktree, so the two guards of the
+      # local branch workflow do not apply here (rk method worktrees).
+      SKIP: no-commit-to-branch,rk-worktree-location
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # gitleaks scans the history, so the job needs all of it.
+          fetch-depth: 0
+      # With no version input, setup-uv installs the newest uv that
+      # [tool.uv] required-version in pyproject.toml accepts.
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: true
+          cache-python: true
+      - uses: cachix/install-nix-action@3dc140bfc76c49fbd4dd958429132e3746bcb086 # v31.11.5
+      - name: pre-commit stage
+        run: nix develop --command pre-commit run --all-files --show-diff-on-failure
+      - name: pre-push stage
+        run: nix develop --command pre-commit run --all-files --hook-stage pre-push

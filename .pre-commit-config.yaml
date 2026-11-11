@@ -1,0 +1,416 @@
+# Pre-commit configuration for vitals.
+# Install: just hooks-install. Run every check once: just check.
+#
+# The pre-commit stage runs the fast checks on the staged files. The pre-push
+# stage runs the costly ones: the test suite, the dependency audit, the flake
+# check, and the secret scan of the history. No stage repeats the other. The
+# manual stage is the union of both, which `rk integrate` and CI run as
+# `pre-commit run --hook-stage manual --all-files`. CI runs no check of its own.
+#
+# Each tool has one owner. A hook that keeps a system form names its owner and
+# its class in an `# owner:` comment directly above it. Those hooks need the
+# devshell on PATH: commit from it, or with `direnv exec . git commit`.
+
+default_install_hook_types: [pre-commit, commit-msg, pre-push]
+default_stages: [pre-commit, manual]
+
+repos:
+# BEGIN release-kit
+# The release convention's hooks. Install every stage they run at:
+# pre-commit install --hook-type pre-commit --hook-type commit-msg --hook-type pre-push
+# A CI sweep commits nothing, so a job running pre-commit against a trunk
+# checkout sets SKIP=no-commit-to-branch,rk-worktree-location in its environment. Append the id of
+# every check this project classifies local-only: the value is a list the
+# project owns the tail of.
+# rk integrate runs this project's pre-integrate suite as
+# `pre-commit run --hook-stage manual --all-files`. Assign to the manual
+# stage every check that must pass before work reaches the trunk, and have
+# continuous integration invoke the same stages: a check that runs on one
+# side of the boundary alone guards one side alone.
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.5.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args: [--strict, --force-scope]
+  - repo: local
+    hooks:
+      - id: rk-message
+        name: rk message content
+        stages: [commit-msg]
+        language: system
+        entry: rk message --check
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: no-commit-to-branch
+        args: [--branch, master]
+        stages: [pre-commit]
+  - repo: local
+    hooks:
+      - id: rk-branch-name
+        name: rk branch name
+        language: system
+        always_run: true
+        pass_filenames: false
+        entry: sh -c 'branch=$(git symbolic-ref --quiet --short HEAD) || exit 0; [ "$branch" = master ] && exit 0; printf %s "$branch" | grep -Eq "^((build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)/[A-Za-z0-9._/-]+|([0-9]+|[A-Z][A-Z0-9]+-[0-9]+)-[A-Za-z0-9._-]+|release[-/].+)$" && exit 0; echo "branch $branch is neither <type>/<slug> nor <issue-id>-<slug>; gh issue develop <issue> --checkout or its glab counterpart mints the linked form" >&2; exit 1'
+      - id: rk-worktree-location
+        name: rk worktree location
+        language: system
+        always_run: true
+        pass_filenames: false
+        entry: sh -c '[ "$(git rev-parse --git-dir)" = "$(git rev-parse --git-common-dir)" ] || exit 0; branch=$(git symbolic-ref --quiet --short HEAD) || { echo "this project works in worktrees — the main checkout takes no commit, detached included; rk worktree add <branch> seats work in its own worktree" >&2; exit 1; }; [ "$branch" = master ] && exit 0; echo "this project works in worktrees — the main checkout holds the trunk and takes no branch commit; rk worktree add $branch gives this branch its own worktree" >&2; exit 1'
+      - id: rk-no-force-push-to-trunk
+        name: rk no force push to trunk
+        stages: [pre-push]
+        language: system
+        always_run: true
+        pass_filenames: false
+        entry: sh -c '[ "$PRE_COMMIT_REMOTE_BRANCH" = refs/heads/master ] || exit 0; tracked=$(git rev-parse --verify --quiet "refs/remotes/$PRE_COMMIT_REMOTE_NAME/master"); for base in "$PRE_COMMIT_FROM_REF" "$tracked"; do case "$base" in "") continue;; *[!0]*) ;; *) continue;; esac; git merge-base --is-ancestor "$base" "$PRE_COMMIT_TO_REF" 2>/dev/null && continue; echo "refusing a force push to master, because $base is not an ancestor of the pushed tip; rebase onto the remote trunk instead of rewriting it" >&2; exit 1; done'
+      - id: rk-no-merge-commit-to-trunk
+        name: rk no merge commit to trunk
+        stages: [pre-push]
+        language: system
+        always_run: true
+        pass_filenames: false
+        entry: sh -c '[ "$PRE_COMMIT_REMOTE_BRANCH" = refs/heads/master ] || exit 0; tip=${PRE_COMMIT_TO_REF:-$PRE_COMMIT_LOCAL_BRANCH}; [ -n "$tip" ] || exit 0; case "$PRE_COMMIT_FROM_REF" in ""|*[!0]*) range=${PRE_COMMIT_FROM_REF:+$PRE_COMMIT_FROM_REF..}$tip;; *) range=$tip;; esac; merges=$(git rev-list --merges "$range") || { echo "the commits pushed to master cannot be listed, so the push is refused" >&2; exit 1; }; [ -z "$merges" ] && exit 0; echo "refusing a push that adds a merge commit to master, whose history stays linear; rebase instead" >&2; git log --oneline --no-walk $merges >&2; exit 1'
+      - id: rk-no-hand-authored-tag
+        name: rk no hand-authored tag
+        stages: [pre-push]
+        language: system
+        always_run: true
+        pass_filenames: false
+        entry: sh -c 'case "$PRE_COMMIT_REMOTE_BRANCH" in refs/tags/v*) echo "never author a tag; the release automation mints every v* tag" >&2; exit 1;; esac'
+      - id: rk-status-check
+        name: rk status check
+        language: system
+        pass_filenames: false
+        entry: rk status --check --target .
+        files: '^(\.github/workflows/|\.gitlab-ci\.yml$|\.gitlab/ci/|AGENTS\.md$|\.release-kit/|\.pre-commit-config\.yaml$|release-plz\.toml$|dist-workspace\.toml$|release-please-config\.json$|cliff\.toml$|\.release-please-manifest\.json$|VERSION$)'
+# END release-kit
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      # A generated file follows its generator, so no fixer rewrites it: the
+      # uv and Nix locks, the UI snapshots, and the files that release-kit and
+      # spec-driven-docs render or record. Upstream also runs some of these
+      # hooks at pre-push, so `stages:` keeps each one at pre-commit and in the
+      # manual union, never twice per push.
+      - id: trailing-whitespace
+        stages: &commit-only [pre-commit, manual]
+        exclude: &generated ^(uv\.lock$|flake\.lock$|tests/.*/__snapshots__/|GLOSSARY\.md$|\.release-kit/manifest\.json$|\.spec-driven-docs/manifest\.json$)
+      - id: end-of-file-fixer
+        stages: *commit-only
+        exclude: *generated
+      - id: mixed-line-ending
+        stages: *commit-only
+        args: [--fix=lf]
+        exclude: *generated
+      - id: check-merge-conflict
+        stages: *commit-only
+      - id: check-case-conflict
+        stages: *commit-only
+      - id: check-executables-have-shebangs
+        stages: *commit-only
+      - id: check-shebang-scripts-are-executable
+        stages: *commit-only
+      - id: check-added-large-files
+        stages: *commit-only
+      - id: check-yaml
+        stages: *commit-only
+      - id: check-json
+        stages: *commit-only
+      - id: check-toml
+        stages: *commit-only
+      - id: detect-private-key
+        stages: *commit-only
+
+  # ruff formats and lints Python. Its configuration is [tool.ruff] of
+  # pyproject.toml, and this rev pins the version.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.4
+    hooks:
+      - id: ruff-format
+      - id: ruff-check
+        args: [--fix]
+
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.52.2
+    hooks:
+      - id: typos
+        stages: *commit-only
+        args: [--force-exclude]
+
+  # A flake reference reads the git tree of a checkout, never a path copy of
+  # the whole folder into the Nix store. exobrain-tech publishes the hook.
+  - repo: https://github.com/gubasso/exobrain-tech
+    rev: v1.0.0
+    hooks:
+      - id: no-path-flake-reference
+
+  - repo: local
+    hooks:
+      # owner: pyproject.toml (project-environment) the pydantic and returns plugins of mypy must load the versions that uv.lock pins, so mypy runs from the project venv.
+      - id: mypy
+        name: mypy (strict, with the pydantic and returns plugins)
+        entry: uv run --frozen mypy
+        language: system
+        types: [python]
+        pass_filenames: false
+
+      # owner: devshell (no-hook-language) upstream dprint publishes no hook in a language that pre-commit builds.
+      - id: dprint
+        name: dprint fmt (markdown)
+        entry: dprint fmt --allow-no-files
+        language: system
+        files: \.md$
+
+      # owner: devshell (outside-caller) nix fmt runs the nixpkgs nixfmt, so the hook runs the same one.
+      - id: nixfmt
+        name: nixfmt (format)
+        entry: nixfmt
+        language: system
+        types: [nix]
+
+      # owner: host (base-tool) uv is a tool of the host, and uv.lock must match pyproject.toml.
+      - id: uv-lock-check
+        name: uv.lock matches pyproject.toml
+        entry: uv lock --check
+        language: system
+        files: ^(pyproject\.toml|uv\.lock)$
+        pass_filenames: false
+
+      # --- pre-push: the costly and networked checks ---
+
+      # owner: pyproject.toml (project-environment) pytest runs the test suite in the uv environment of the project.
+      - id: pytest
+        name: pytest
+        entry: uv run --frozen pytest
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push, manual]
+
+      # owner: pyproject.toml (project-environment) the versions to audit are the pins of uv.lock, which only uv exports, so pip-audit runs from the venv.
+      - id: pip-audit
+        name: pip-audit (locked dependencies, network)
+        entry: bash -c 'uv export --frozen --format requirements-txt --no-emit-project --quiet | uv run --frozen pip-audit --strict --progress-spinner off -r /dev/stdin'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push, manual]
+
+      # owner: host (base-tool) nix is a tool of the host, and the flake check proves the pins and the package of the flake.
+      - id: nix-flake-check
+        name: nix flake check
+        entry: nix flake check
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push, manual]
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      # The upstream entry scans `--staged`, which is empty on a push. This one
+      # scans the git history, so every pushed commit gets scanned.
+      - id: gitleaks
+        entry: gitleaks git --redact --verbose --no-banner
+        stages: [pre-push, manual]
+# BEGIN spec-driven-docs managed
+  - repo: local
+    hooks:
+      - id: spec-driven-docs-verify
+        name: verify spec-driven docs instance
+        entry: sdd verify
+        language: system
+        always_run: true
+        pass_filenames: false
+      - id: adr-cites-a-live-rule
+        name: 'decision record citations resolve'
+        entry: sdd gate adr-cites-a-live-rule
+        language: system
+        always_run: true
+        pass_filenames: false
+      - id: adr-filename-shape
+        name: 'decision record filename shape'
+        entry: sdd gate adr-filename-shape
+        language: system
+        files: '^docs/decisions/[^/]*\.md$'
+        exclude: '^GLOSSARY\.md$'
+      - id: adr-word-cap
+        name: 'decision record word cap'
+        entry: sdd gate adr-word-cap
+        language: system
+        always_run: true
+        pass_filenames: false
+      - id: agents-digest-size
+        name: 'agent digest size'
+        entry: sdd gate agents-digest-size
+        language: system
+        always_run: true
+        pass_filenames: false
+      - id: chapter-size-cap
+        name: 'chapter and catalog size'
+        entry: sdd gate chapter-size-cap
+        language: system
+        always_run: true
+        pass_filenames: false
+      - id: comparison-dated-tables
+        name: 'comparison tables are dated'
+        entry: sdd gate comparison-dated-tables
+        language: system
+        files: '^(?:.*/)?COMPARISON-[^/]*\.md$'
+        exclude: '^GLOSSARY\.md$'
+      - id: comparison-escaped-pipes
+        name: 'comparison table pipes are escaped'
+        entry: sdd gate comparison-escaped-pipes
+        language: system
+        files: '^(?:.*/)?COMPARISON-[^/]*\.md$'
+        exclude: '^GLOSSARY\.md$'
+      - id: comparison-legend
+        name: 'comparison legend'
+        entry: sdd gate comparison-legend
+        language: system
+        files: '^(?:.*/)?COMPARISON-[^/]*\.md$'
+        exclude: '^GLOSSARY\.md$'
+      - id: comparison-one-reference-per-cell
+        name: 'one reference per comparison cell'
+        entry: sdd gate comparison-one-reference-per-cell
+        language: system
+        files: '^(?:.*/)?COMPARISON-[^/]*\.md$'
+        exclude: '^GLOSSARY\.md$'
+      - id: comparison-verdict-word
+        name: 'comparison verdict word'
+        entry: sdd gate comparison-verdict-word
+        language: system
+        files: '^(?:.*/)?COMPARISON-[^/]*\.md$'
+        exclude: '^GLOSSARY\.md$'
+      - id: gate-message-cites-a-rule
+        name: 'gate messages cite a rule'
+        entry: sdd gate gate-message-cites-a-rule
+        language: system
+        always_run: true
+        pass_filenames: false
+      - id: instance-manifest
+        name: 'instance manifest'
+        entry: sdd gate instance-manifest
+        language: system
+        always_run: true
+        pass_filenames: false
+      - id: ki-bugzilla-report-width
+        name: 'Bugzilla report width'
+        entry: sdd gate ki-bugzilla-report-width
+        language: system
+        always_run: true
+        pass_filenames: false
+      - id: ki-checked-date
+        name: 'known issue last-check date'
+        entry: sdd gate ki-checked-date
+        language: system
+        always_run: true
+        pass_filenames: false
+      - id: ki-filename-shape
+        name: 'known issue filename shape'
+        entry: sdd gate ki-filename-shape
+        language: system
+        files: '^docs/reference/known-issues/[^/]*\.md$'
+        exclude: '^GLOSSARY\.md$'
+      - id: ki-filing
+        name: 'known issue filing state'
+        entry: sdd gate ki-filing
+        language: system
+        always_run: true
+        pass_filenames: false
+      - id: ki-mechanism-walkthrough
+        name: 'known issue mechanism walkthrough'
+        entry: sdd gate ki-mechanism-walkthrough
+        language: system
+        always_run: true
+        pass_filenames: false
+      - id: ki-report-body
+        name: 'known issue report body'
+        entry: sdd gate ki-report-body
+        language: system
+        always_run: true
+        pass_filenames: false
+      - id: ki-retire-when
+        name: 'known issue retirement condition'
+        entry: sdd gate ki-retire-when
+        language: system
+        always_run: true
+        pass_filenames: false
+      - id: ki-state
+        name: 'known issue state'
+        entry: sdd gate ki-state
+        language: system
+        always_run: true
+        pass_filenames: false
+      - id: no-personal-path
+        name: 'no personal path'
+        entry: sdd gate no-personal-path
+        language: system
+        types: [text]
+        exclude: '^GLOSSARY\.md$'
+      - id: no-self-narration
+        name: 'documents state the present'
+        entry: sdd gate no-self-narration
+        language: system
+        files: '^docs/(?:specs|decisions|guides|reference|explanation)/(?:.*/)?[^/]*\.md$'
+        types: [markdown]
+        exclude: '^(?:docs/decisions/.*|GLOSSARY\.md)$'
+      - id: prose-stays-unwrapped
+        name: 'prose lines stay unwrapped'
+        entry: sdd gate prose-stays-unwrapped
+        language: system
+        files: '^docs/(?:specs|decisions|guides|reference|explanation)/(?:.*/)?[^/]*\.md$'
+        types: [markdown]
+        exclude: '^(?:(?:.*/)?CHANGELOG\.md|GLOSSARY\.md)$'
+      - id: spec-requirement-parts
+        name: 'spec requirement parts'
+        entry: sdd gate spec-requirement-parts
+        language: system
+        files: '^docs/specs/SPEC-[^/]*\.md$'
+        exclude: '^GLOSSARY\.md$'
+      - id: spec-rule-id-unique
+        name: 'spec rule IDs are unique'
+        entry: sdd gate spec-rule-id-unique
+        language: system
+        always_run: true
+        pass_filenames: false
+      - id: spec-size-cap
+        name: 'spec size cap'
+        entry: sdd gate spec-size-cap
+        language: system
+        always_run: true
+        pass_filenames: false
+      - id: spec-trailing-section
+        name: 'spec trailing section'
+        entry: sdd gate spec-trailing-section
+        language: system
+        files: '^docs/specs/SPEC-[^/]*\.md$'
+        exclude: '^GLOSSARY\.md$'
+      - id: spec-verify-hooks-exist
+        name: 'spec hook references exist'
+        entry: sdd gate spec-verify-hooks-exist
+        language: system
+        always_run: true
+        pass_filenames: false
+      - id: suppression-names-its-case
+        name: 'suppressions name a known issue'
+        entry: sdd gate suppression-names-its-case
+        language: system
+        always_run: true
+        pass_filenames: false
+      - id: tracking-registry
+        name: 'tracking registry is valid and current'
+        entry: sdd gate tracking-registry
+        language: system
+        always_run: true
+        pass_filenames: false
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.24.0
+    hooks:
+      - id: markdownlint-cli2
+        additional_dependencies: ['markdownlint-rule-relative-links@5.1.3']
+# END spec-driven-docs managed

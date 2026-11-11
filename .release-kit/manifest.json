@@ -1,0 +1,58 @@
+{
+  "schema_version": 12,
+  "rk_version": "0.9.8",
+  "origin": "init",
+  "landed_at": "2026-11-11T22:19:47Z",
+  "profile": {
+    "technologies": [
+      "python"
+    ],
+    "forge": "github",
+    "release": {
+      "mode": "external"
+    }
+  },
+  "git": {
+    "trunk": "master",
+    "checkout_mode": "linked-worktree",
+    "integration": "local",
+    "merge_form": "squash"
+  },
+  "capabilities": {
+    "nix_packaging": false,
+    "reporting_policy": false,
+    "scorecard": false,
+    "workflow_guards": true
+  },
+  "parameters": {
+    "repo": "gubasso/vitals",
+    "security_contact": "",
+    "security_response": "best-effort",
+    "required_check": "",
+    "required_workflow": ""
+  },
+  "files": [
+    {
+      "destination": ".pre-commit-config.yaml",
+      "kind": "rendered",
+      "sha256": "b7b5ac37eab34417b4b11525f55c98a28fe82fb1d5b0b3950bd635ddaee741d2",
+      "placement": "region"
+    },
+    {
+      "destination": "AGENTS.md",
+      "kind": "rendered",
+      "sha256": "68aff6f88f758755ce2d066d6bcbdba5562589bdc7945db4e6e8cab3ef1ae5c3",
+      "placement": "region"
+    },
+    {
+      "destination": "GLOSSARY.md",
+      "kind": "rendered",
+      "sha256": "ad1166cb6d5c1c94619501b7c561e57e4956e78c997c5e0b79c8689bef59e285",
+      "placement": "region"
+    }
+  ],
+  "pins": {
+    "conventional-pre-commit": "4.5.0",
+    "pre-commit-hooks": "6.0.0"
+  }
+}

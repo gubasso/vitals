@@ -1,2 +1,1 @@
-def main() -> None:
-    print("Hello from vitals!")
+"""vitals: a terminal dashboard of the machine's vital signs."""
