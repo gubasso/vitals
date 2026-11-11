@@ -3,7 +3,7 @@ name = "vitals"
 version = "0.1.0"
 description = "A terminal dashboard of the machine's vital signs: CPU, GPU, memory, disks, and temperatures."
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.15"
 dependencies = []
 
 [project.scripts]
