@@ -4,29 +4,35 @@
 # The pre-commit stage runs the fast checks on the staged files. The pre-push
 # stage runs the costly ones: the test suite, the dependency audit, the flake
 # check, and the secret scan of the history. No stage repeats the other. The
-# manual stage is the union of both, which `rk integrate` and CI run as
-# `pre-commit run --hook-stage manual --all-files`. CI runs no check of its own.
+# manual stage is the union of both, which `just check` runs as
+# `pre-commit run --hook-stage manual --all-files`. The pre-merge-commit stage
+# holds the same union, and `rk integrate` runs it through the installed git
+# hook on the squashed change. CI runs the two stages and no check of its own.
 #
 # Each tool has one owner. A hook that keeps a system form names its owner and
 # its class in an `# owner:` comment directly above it. Those hooks need the
 # devshell on PATH: commit from it, or with `direnv exec . git commit`.
 
-default_install_hook_types: [pre-commit, commit-msg, pre-push]
-default_stages: [pre-commit, manual]
+default_install_hook_types: [pre-commit, commit-msg, pre-push, pre-merge-commit]
+default_stages: [pre-commit, pre-merge-commit, manual]
 
 repos:
 # BEGIN release-kit
-# The release convention's hooks. Install every stage they run at:
-# pre-commit install --hook-type pre-commit --hook-type commit-msg --hook-type pre-push
-# A CI sweep commits nothing, so a job running pre-commit against a trunk
-# checkout sets SKIP=no-commit-to-branch,rk-worktree-location in its environment. Append the id of
-# every check this project classifies local-only: the value is a list the
-# project owns the tail of.
-# rk integrate runs this project's pre-integrate suite as
-# `pre-commit run --hook-stage manual --all-files`. Assign to the manual
-# stage every check that must pass before work reaches the trunk, and have
-# continuous integration invoke the same stages: a check that runs on one
-# side of the boundary alone guards one side alone.
+# The release convention's hooks. Install every stage they run at with
+# the hook manager this project uses, for example:
+# prek install --hook-type pre-commit --hook-type commit-msg --hook-type pre-push --hook-type pre-merge-commit
+# A CI sweep commits nothing, so a job running the project's hook manager
+# against a trunk checkout sets SKIP=no-commit-to-branch,rk-worktree-location in its environment.
+# Append the id of every check this project classifies local-only: the
+# value is a list the project owns the tail of.
+# rk integrate runs this clone's pre-merge-commit hook through git, on the
+# change the integration squashes, and refuses where none is installed.
+# Tag pre-merge-commit on every check that must pass before work reaches
+# the trunk, and add it to default_stages where this file sets them. Have
+# continuous integration invoke the same checks: a check that runs on one
+# side of the boundary alone guards one side alone. prek runs each nested
+# .pre-commit-config.yaml as a project of its own, so a project that runs
+# prek lists a directory of fixtures in a root .prekignore.
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v4.5.0
     hooks:
@@ -53,7 +59,7 @@ repos:
         language: system
         always_run: true
         pass_filenames: false
-        entry: sh -c 'branch=$(git symbolic-ref --quiet --short HEAD) || exit 0; [ "$branch" = master ] && exit 0; printf %s "$branch" | grep -Eq "^((build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)/[A-Za-z0-9._/-]+|([0-9]+|[A-Z][A-Z0-9]+-[0-9]+)-[A-Za-z0-9._-]+|release[-/].+)$" && exit 0; echo "branch $branch is neither <type>/<slug> nor <issue-id>-<slug>; gh issue develop <issue> --checkout or its glab counterpart mints the linked form" >&2; exit 1'
+        entry: sh -c 'branch=$(git symbolic-ref --quiet --short HEAD) || exit 0; [ "$branch" = master ] && exit 0; printf %s "$branch" | grep -Eq "^((build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)/[A-Za-z0-9._/-]+|([0-9]+|[A-Z][A-Z0-9]+-[0-9]+)-[A-Za-z0-9._-]+|release[-/].+|rk-release/.+)$" && exit 0; echo "branch $branch is neither <type>/<slug> nor <issue-id>-<slug>; gh issue develop <issue> --checkout or its glab counterpart mints the linked form" >&2; exit 1'
       - id: rk-worktree-location
         name: rk worktree location
         language: system
@@ -66,7 +72,7 @@ repos:
         language: system
         always_run: true
         pass_filenames: false
-        entry: sh -c '[ "$PRE_COMMIT_REMOTE_BRANCH" = refs/heads/master ] || exit 0; tracked=$(git rev-parse --verify --quiet "refs/remotes/$PRE_COMMIT_REMOTE_NAME/master"); for base in "$PRE_COMMIT_FROM_REF" "$tracked"; do case "$base" in "") continue;; *[!0]*) ;; *) continue;; esac; git merge-base --is-ancestor "$base" "$PRE_COMMIT_TO_REF" 2>/dev/null && continue; echo "refusing a force push to master, because $base is not an ancestor of the pushed tip; rebase onto the remote trunk instead of rewriting it" >&2; exit 1; done'
+        entry: sh -c '[ "$PRE_COMMIT_REMOTE_BRANCH" = refs/heads/master ] || exit 0; listed=$(git ls-remote "${PRE_COMMIT_REMOTE_URL:-$PRE_COMMIT_REMOTE_NAME}" refs/heads/master) || { echo "the remote master cannot be read, so a push to it is refused" >&2; exit 1; }; remote=${listed%%[[:space:]]*}; tracked=$(git rev-parse --verify --quiet "refs/remotes/$PRE_COMMIT_REMOTE_NAME/master"); for base in "$remote" "$PRE_COMMIT_FROM_REF" "$tracked"; do case "$base" in "") continue;; *[!0]*) ;; *) continue;; esac; git cat-file -e "$base^{commit}" 2>/dev/null || { echo "refusing a force push to master, because the remote holds $base, which this clone has not fetched; fetch, then rebase onto the remote trunk" >&2; exit 1; }; git merge-base --is-ancestor "$base" "$PRE_COMMIT_TO_REF" 2>/dev/null && continue; echo "refusing a force push to master, because $base is not an ancestor of the pushed tip; rebase onto the remote trunk instead of rewriting it" >&2; exit 1; done'
       - id: rk-no-merge-commit-to-trunk
         name: rk no merge commit to trunk
         stages: [pre-push]
@@ -86,7 +92,7 @@ repos:
         language: system
         pass_filenames: false
         entry: rk status --check --target .
-        files: '^(\.github/workflows/|\.gitlab-ci\.yml$|\.gitlab/ci/|AGENTS\.md$|\.release-kit/|\.pre-commit-config\.yaml$|release-plz\.toml$|dist-workspace\.toml$|release-please-config\.json$|cliff\.toml$|\.release-please-manifest\.json$|VERSION$)'
+        files: '^(\.github/workflows/|\.gitlab-ci\.yml$|\.gitlab/ci/|AGENTS\.md$|\.release-kit/|\.pre-commit-config\.yaml$|release-plz\.toml$|dist-workspace\.toml$|cliff\.toml$|VERSION$)'
 # END release-kit
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -97,7 +103,7 @@ repos:
       # hooks at pre-push, so `stages:` keeps each one at pre-commit and in the
       # manual union, never twice per push.
       - id: trailing-whitespace
-        stages: &commit-only [pre-commit, manual]
+        stages: &commit-only [pre-commit, pre-merge-commit, manual]
         exclude: &generated ^(uv\.lock$|flake\.lock$|tests/.*/__snapshots__/|GLOSSARY\.md$|\.release-kit/manifest\.json$|\.spec-driven-docs/manifest\.json$)
       - id: end-of-file-fixer
         stages: *commit-only
@@ -189,7 +195,7 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-        stages: [pre-push, manual]
+        stages: [pre-push, pre-merge-commit, manual]
 
       # owner: pyproject.toml (project-environment) the versions to audit are the pins of uv.lock, which only uv exports, so pip-audit runs from the venv.
       - id: pip-audit
@@ -198,7 +204,7 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-        stages: [pre-push, manual]
+        stages: [pre-push, pre-merge-commit, manual]
 
       # owner: host (base-tool) nix is a tool of the host, and the flake check proves the pins and the package of the flake.
       - id: nix-flake-check
@@ -207,7 +213,7 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-        stages: [pre-push, manual]
+        stages: [pre-push, pre-merge-commit, manual]
 
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.30.1
@@ -216,7 +222,7 @@ repos:
       # scans the git history, so every pushed commit gets scanned.
       - id: gitleaks
         entry: gitleaks git --redact --verbose --no-banner
-        stages: [pre-push, manual]
+        stages: [pre-push, pre-merge-commit, manual]
 # BEGIN spec-driven-docs managed
   - repo: local
     hooks:

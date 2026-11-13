@@ -5,21 +5,21 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     # The docs gate of the repository (sdd). The tag in the URL is the
-    # version, and flake.lock pins its content. The `sdd self-depend sync`
-    # line of .envrc moves both. Run `sdd upgrade` when the new release moves
-    # the canon.
+    # version, and flake.lock pins its content. The operator moves both with
+    # `sdd self-depend sync --apply` from a shell. Run `sdd upgrade` when the
+    # new release moves the canon.
     spec-driven-docs = {
-      url = "github:gubasso/spec-driven-docs/v0.15.1";
+      url = "github:gubasso/spec-driven-docs/v0.17.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     # The branch workflow of the repository (rk): worktrees, local squash
     # integration, and an external release. The tag in the URL is the
-    # version, and flake.lock pins its content. The `rk self-depend sync`
-    # line of .envrc moves both. Run `rk upgrade` when the new release moves
-    # the landed files.
+    # version, and flake.lock pins its content. The operator moves both with
+    # `rk self-depend sync --apply` from a shell. Run `rk upgrade` when the
+    # new release moves the landed files.
     release-kit = {
-      url = "github:gubasso/release-kit/v0.9.8";
+      url = "github:gubasso/release-kit/v0.9.15";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.spec-driven-docs.follows = "spec-driven-docs";
     };
