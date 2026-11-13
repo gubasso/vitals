@@ -1,0 +1,24 @@
+# The host tools that the justfile and the git hooks of vitals call. The flake
+# devShell, .pre-commit-config.yaml, pyproject.toml, and uv.lock own every other
+# tool, so none of those appear here. The base tools (bash, sh, grep, and the
+# coreutils) are not listed. The justfile checks git and uv once per run, and
+# each hook recipe checks prek first, with `exobrain host-check`. The
+# convention and the checker belong to exobrain-tech.
+schema = 1
+
+# The hooks of the release-kit block, and every recipe.
+[tools.git]
+
+# The venv of .envrc, the test and run recipes, and the mypy, uv-lock-check,
+# pytest, and pip-audit hooks. uv enforces its own version through
+# [tool.uv] required-version in pyproject.toml, so this file names no floor.
+[tools.uv]
+version = "*"
+
+# The nix-flake-check hook of the pre-push stage.
+[tools.nix]
+
+# The git hooks and the hook recipes. prek enforces its own version through
+# minimum_prek_version in .pre-commit-config.yaml, so this file names no floor.
+[tools.prek]
+version = "*"

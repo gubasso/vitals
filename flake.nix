@@ -24,6 +24,16 @@
       inputs.spec-driven-docs.follows = "spec-driven-docs";
     };
 
+    # The canon's checker (exobrain): `exobrain host-check` checks the tools of
+    # host-requirements.toml for the justfile and the host-requirements hook.
+    exobrain-tech = {
+      url = "github:gubasso/exobrain-tech/v1.1.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+      # Its rk and sdd serve only its own devShell, so it takes these.
+      inputs.release-kit.follows = "release-kit";
+      inputs.spec-driven-docs.follows = "spec-driven-docs";
+    };
+
     # The package build reads uv.lock, so the flake holds no Python library of
     # its own: pyproject.toml and uv.lock own them. Template:
     # https://github.com/pyproject-nix/uv2nix/blob/master/templates/hello-world/flake.nix
@@ -52,6 +62,7 @@
       pyproject-build-systems,
       release-kit,
       spec-driven-docs,
+      exobrain-tech,
       ...
     }:
     let
@@ -84,24 +95,6 @@
         inherit venv;
         package = pythonSet.vitals;
       };
-
-      # The nixpkgs virtualenv imports `packaging` but does not declare it, so
-      # it runs only while PYTHONPATH carries the libraries of pre-commit, and
-      # that PYTHONPATH would shadow the packages of the project venv. Declaring
-      # the dependency lets pre-commit build its Python hook environments with
-      # PYTHONPATH unset. The fix holds on nixpkgs master of 2026-11-11. The
-      # rebuilt virtualenv skips its test suite, which the hooks of this
-      # repository replace.
-      pre-commit = pkgs.pre-commit.override {
-        python3Packages = pkgs.python3Packages.overrideScope (
-          _final: prev: {
-            virtualenv = prev.virtualenv.overridePythonAttrs (old: {
-              dependencies = (old.dependencies or [ ]) ++ [ prev.packaging ];
-              doCheck = false;
-            });
-          }
-        );
-      };
     in
     {
       formatter.${system} = pkgs.nixfmt;
@@ -121,30 +114,24 @@
       # devshell holds only the project tools.
       devShells.${system}.default = pkgs.mkShell {
         packages = [
-          # The hook runner and the command surface.
-          pre-commit
+          # The command surface. The host supplies the hook runner prek.
           pkgs.just
           # The formatter of Markdown (dprint hook) and of Nix (nixfmt hook).
           pkgs.dprint
           pkgs.nixfmt
-          # The runtime on which pre-commit builds the node hook of
-          # markdownlint-cli2: the generic node that pre-commit downloads does
-          # not run on a host without the standard glibc loader.
+          # The runtime of the node hook of markdownlint-cli2. With
+          # `node: system`, the hook runner takes this node from the store and
+          # downloads none.
           pkgs.nodejs
           # rk, the branch workflow: `rk worktree add`, `rk integrate`, and
           # the rk hooks.
           release-kit.packages.${system}.default
           # sdd, the docs gate: its hooks, `sdd verify`, and `sdd status`.
           spec-driven-docs.packages.${system}.default
+          # exobrain, the host-tool checker of the justfile and of the
+          # host-requirements hook.
+          exobrain-tech.packages.${system}.default
         ];
-
-        # The Python setup hook exports the libraries of pkgs.pre-commit, built
-        # for the nixpkgs Python, on PYTHONPATH. pre-commit finds them through
-        # its own wrapper, and the variable would shadow the packages of the
-        # project venv, which runs another Python. So the shell drops it.
-        shellHook = ''
-          unset PYTHONPATH
-        '';
       };
 
       checks.${system} = {

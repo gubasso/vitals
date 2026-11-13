@@ -24,7 +24,7 @@ A `VITALS_<KEY>` variable overrides the file, and a flag such as `--theme nord` 
 
 ## Develop
 
-The host needs `nix`, `direnv`, `git`, and `uv`. On entry, direnv loads the flake devshell and syncs the venv from `uv.lock` with the Python of `.python-version`.
+The host needs `nix`, `direnv`, and the tools of [host-requirements.toml](./host-requirements.toml). On entry, direnv loads the flake devshell and syncs the venv from `uv.lock` with the Python of `.python-version`.
 
 ```bash
 direnv allow

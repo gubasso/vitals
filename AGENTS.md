@@ -9,7 +9,7 @@ This repository is complete on its own. Its specs, its decision records, and thi
 ## The environment
 
 - Run every command in the devshell: in a shell that direnv activated, or as `direnv exec . <command>`. The commit hooks find their tools only there.
-- The host supplies `nix`, `direnv`, `git`, and `uv`. The devshell holds the project tools: `pre-commit`, `just`, `dprint`, `nixfmt`, `rk`, and `sdd`.
+- The host supplies `nix`, `direnv`, `git`, `uv`, and the hook runner `prek`, as [host-requirements.toml](./host-requirements.toml) lists. The devshell holds the project tools: `just`, `dprint`, `nixfmt`, `rk`, `sdd`, and `exobrain`.
 - uv owns the Python interpreter. `.python-version` names the exact patch, and `[tool.uv] required-version` in `pyproject.toml` names the uv that the project accepts. Reach a tool of the project through `uv run`.
 - `just check` runs every check once: the union of the pre-commit and the pre-push hooks.
 

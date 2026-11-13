@@ -33,7 +33,7 @@ Every panel MUST be a container whose `border_title` names its subject, and ever
 - WHEN the overview draws
 - THEN the panel titled `Memory` shows the label `Used`, the number, and `GiB` beside a gauge at 40 percent
 
-Verify: `pre-commit run pytest --hook-stage manual --all-files`
+Verify: `prek run pytest --hook-stage manual --all-files`
 
 ### `dashboard:the-overview-shows-the-vital-signs` — The overview shows the vital signs
 
@@ -45,7 +45,7 @@ The overview view MUST show these panels: `CPU` with one gauge of the aggregate 
 - WHEN the app opens at a terminal of 120 columns and 40 rows
 - THEN the screen matches the recorded snapshot of the overview, with all six panel titles
 
-Verify: `pre-commit run pytest --hook-stage manual --all-files`
+Verify: `prek run pytest --hook-stage manual --all-files`
 
 ### `dashboard:no-panel-shows-a-value-per-core` — No panel shows a value per core
 
@@ -57,7 +57,7 @@ The CPU panel MUST show the aggregate usage alone, and MUST NOT draw a grid, a b
 - WHEN the overview draws
 - THEN the CPU panel holds exactly one gauge
 
-Verify: `pre-commit run pytest --hook-stage manual --all-files`
+Verify: `prek run pytest --hook-stage manual --all-files`
 
 ### `dashboard:a-failed-source-shows-its-kind` — A failed source shows its error kind
 
@@ -69,7 +69,7 @@ If the `Result` of a source is a `Failure`, then its panel MUST show the error k
 - WHEN the overview draws
 - THEN the `GPU` panel shows `source-unavailable` and its detail, and the other five panels show their values
 
-Verify: `pre-commit run pytest --hook-stage manual --all-files`
+Verify: `prek run pytest --hook-stage manual --all-files`
 
 ### `dashboard:the-chart-shows-five-minutes-of-temperatures` — The chart shows five minutes of temperatures
 
@@ -81,7 +81,7 @@ The `Temperatures` panel MUST draw a line chart of the last five minutes with on
 - WHEN the chart draws
 - THEN it draws the CPU and GPU series, and the legend omits the NVMe series
 
-Verify: `pre-commit run pytest --hook-stage manual --all-files`
+Verify: `prek run pytest --hook-stage manual --all-files`
 
 ### `dashboard:the-processes-view-ranks-processes` — The processes view ranks processes
 
@@ -93,7 +93,7 @@ The processes view MUST show two read-only tables, `Top CPU` and `Top memory`, w
 - WHEN the user presses `2`
 - THEN the processes view opens with both tables titled
 
-Verify: `pre-commit run pytest --hook-stage manual --all-files`
+Verify: `prek run pytest --hook-stage manual --all-files`
 
 ### `dashboard:one-registry-maps-the-views-to-keys` — One registry maps the views to keys
 
@@ -105,7 +105,7 @@ The app MUST take its views from one registry that maps a name and a key from `1
 - WHEN the app starts with the view `processes`
 - THEN the processes view opens first, and `1` returns to the overview
 
-Verify: `pre-commit run pytest --hook-stage manual --all-files`
+Verify: `prek run pytest --hook-stage manual --all-files`
 
 ### `dashboard:sampling-runs-off-the-event-loop` — Sampling runs off the event loop
 
@@ -117,7 +117,7 @@ The app MUST build each `Snapshot` on a worker thread at the configured interval
 - WHEN the app runs
 - THEN the key bindings answer while the worker waits
 
-Verify: `pre-commit run pytest --hook-stage manual --all-files`
+Verify: `prek run pytest --hook-stage manual --all-files`
 
 ### `dashboard:a-theme-recolors-every-panel` — A theme recolors every panel
 
@@ -129,7 +129,7 @@ The colors MUST come from the design tokens of the active Textual theme in `vita
 - WHEN the user picks another theme from the command palette
 - THEN every panel border and gauge takes the colors of the new theme
 
-Verify: `pre-commit run pytest --hook-stage manual --all-files`
+Verify: `prek run pytest --hook-stage manual --all-files`
 
 ## Unenforced
 
