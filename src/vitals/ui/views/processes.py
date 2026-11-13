@@ -4,6 +4,7 @@ from typing import override
 
 from returns.result import Failure, Success
 from textual.containers import Horizontal
+from textual.content import Content
 from textual.widgets import DataTable, Label
 lazy from textual.app import ComposeResult
 
@@ -25,15 +26,22 @@ def _table(table_id: str) -> DataTable[str]:
 
 
 def _fill(table: DataTable[str], entries: tuple[ProcessEntry, ...]) -> None:
-    table.clear()
-    for entry in entries:
-        table.add_row(
-            str(entry.pid),
-            entry.name,
-            entry.user,
-            f"{entry.cpu:.1f}",
-            size(entry.resident),
-        )
+    """Replace the rows, with each column as wide as its widest cell.
+
+    A column of automatic width takes its new width only when the table next
+    goes idle, and a frame drawn before that keeps the header at the old width.
+    So the columns are rebuilt with explicit widths, the same widths that the
+    automatic ones settle on, and the first frame draws the header right.
+    """
+    rows = [
+        (str(entry.pid), entry.name, entry.user, f"{entry.cpu:.1f}", size(entry.resident))
+        for entry in entries
+    ]
+    table.clear(columns=True)
+    for index, label in enumerate(_COLUMNS):
+        widths = [Content(label).cell_length, *(Content(row[index]).cell_length for row in rows)]
+        table.add_column(label, width=max(widths))
+    table.add_rows(rows)
 
 
 class ProcessesView(View):
