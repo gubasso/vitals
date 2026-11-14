@@ -1,6 +1,7 @@
 # Files that a tool generates follow their generator, and no check judges
 # their words: the locks that uv and nix write, the snapshots that the UI tests
-# write, and the files that release-kit and spec-driven-docs render or record.
+# write, and the files that release-kit and spec-driven-docs render, record, or
+# land, the agent skills included.
 [files]
 extend-exclude = [
   "uv.lock",
@@ -9,6 +10,8 @@ extend-exclude = [
   "GLOSSARY.md",
   ".release-kit/manifest.json",
   ".spec-driven-docs/manifest.json",
+  ".claude/skills/",
+  ".agents/skills/",
 ]
 
 [default.extend-words]

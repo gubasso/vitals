@@ -14,11 +14,19 @@
 // - GLOSSARY.md is rendered by release-kit, and a generated file follows its
 //   generator. CLAUDE.md is the one-line import of AGENTS.md.
 // - The UI snapshot files are written by pytest-textual-snapshot.
+// - release-kit and spec-driven-docs land the agent skills under
+//   .claude/skills and .agents/skills, and a byte changed there is drift.
 {
   "customRules": ["markdownlint-rule-relative-links"],
   "config": {
     "relative-links": true,
     "MD013": false
   },
-  "ignores": ["GLOSSARY.md", "CLAUDE.md", "tests/**/__snapshots__/**"]
+  "ignores": [
+    "GLOSSARY.md",
+    "CLAUDE.md",
+    "tests/**/__snapshots__/**",
+    ".claude/skills/**",
+    ".agents/skills/**"
+  ]
 }

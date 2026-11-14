@@ -16,7 +16,9 @@
     "**/TEMPLATE-*.md",
     "GLOSSARY.md",
     "CHANGELOG.md",
-    "tests/**/__snapshots__/**"
+    "tests/**/__snapshots__/**",
+    ".claude/skills",
+    ".agents/skills"
   ],
   "plugins": [
     "https://plugins.dprint.dev/markdown-0.22.0.wasm"

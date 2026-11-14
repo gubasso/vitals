@@ -40,6 +40,7 @@ Load the spec of a domain before changing it:
 <!-- END release-kit -->
 
 <!-- BEGIN spec-driven-docs docs -->
+
 ## Documentation
 
 - Load the affected specs before editing governed content: `docs/specs/SPEC-<domain>.md`. <!-- markdownlint-disable-line MD013 -->
@@ -50,4 +51,5 @@ Load the spec of a domain before changing it:
 - For a question about this method or about operating `sdd`, run `sdd docs` and read only the topic it names. <!-- markdownlint-disable-line MD013 -->
 - Run `sdd verify` before handoff. <!-- markdownlint-disable-line MD013 -->
 - Keep adopted specs, the tracking registry, and local integration instance-owned. <!-- markdownlint-disable-line MD013 -->
+
 <!-- END spec-driven-docs docs -->
