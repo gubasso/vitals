@@ -17,8 +17,14 @@
     "GLOSSARY.md",
     "CHANGELOG.md",
     "tests/**/__snapshots__/**",
-    ".claude/skills",
-    ".agents/skills"
+    ".claude/skills/rk-release",
+    ".claude/skills/rk-setup",
+    ".claude/skills/sdd-setup",
+    ".claude/skills/sdd-write-docs",
+    ".agents/skills/rk-release",
+    ".agents/skills/rk-setup",
+    ".agents/skills/sdd-setup",
+    ".agents/skills/sdd-write-docs"
   ],
   "plugins": [
     "https://plugins.dprint.dev/markdown-0.22.0.wasm"

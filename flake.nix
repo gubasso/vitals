@@ -9,10 +9,11 @@
     # `sdd self-depend sync --apply` from a shell. Run `sdd upgrade` when the
     # new release moves the canon.
     spec-driven-docs = {
-      url = "github:gubasso/spec-driven-docs/v0.18.0";
+      url = "github:gubasso/spec-driven-docs/v0.18.1";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.spec-driven-docs.follows = "";
       inputs.release-kit.follows = "release-kit";
+      inputs.exobrain-tech.follows = "exobrain-tech";
     };
 
     # The branch workflow of the repository (rk): worktrees, local squash
@@ -21,10 +22,11 @@
     # `rk self-depend sync --apply` from a shell. Run `rk upgrade` when the
     # new release moves the landed files.
     release-kit = {
-      url = "github:gubasso/release-kit/v0.10.0";
+      url = "github:gubasso/release-kit/v0.10.1";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.release-kit.follows = "";
       inputs.spec-driven-docs.follows = "spec-driven-docs";
+      inputs.exobrain-tech.follows = "exobrain-tech";
     };
 
     # The canon's checker (exobrain): `exobrain host-check` checks the tools of

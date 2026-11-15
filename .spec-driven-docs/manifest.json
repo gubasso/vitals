@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "canon_version": "0.18.0",
+  "canon_version": "0.18.1",
   "canon_source": "https://github.com/gubasso/spec-driven-docs",
   "profile": "codebase",
   "docs_root": "docs",
@@ -14,7 +14,7 @@
     {
       "source": "skills/sdd-setup/SKILL.md",
       "destination": ".claude/skills/sdd-setup/SKILL.md",
-      "sha256": "fcf6ea7107852c2ca292d6f79e7c00010d679f278548ddaeac3084c0083d8520"
+      "sha256": "0f15d01ac8b814e2c79656ed609a9c4bc66313e81fae910265f080e38a9591b8"
     },
     {
       "source": "skills/sdd-setup/references/land.md",
@@ -59,7 +59,7 @@
     {
       "source": "skills/sdd-setup/references/upgrade.md",
       "destination": ".claude/skills/sdd-setup/references/upgrade.md",
-      "sha256": "5791559eced75169edb78c903e4f0bef80d6ad7eb3629afda888e6dd80eb8af3"
+      "sha256": "699e65432da54b91bfae7f386fac27c1296c86c56c2ae71524e2dd400f149aec"
     },
     {
       "source": "skills/sdd-write-docs/SKILL.md",
@@ -79,7 +79,7 @@
     {
       "source": "skills/sdd-setup/SKILL.md",
       "destination": ".agents/skills/sdd-setup/SKILL.md",
-      "sha256": "fcf6ea7107852c2ca292d6f79e7c00010d679f278548ddaeac3084c0083d8520"
+      "sha256": "0f15d01ac8b814e2c79656ed609a9c4bc66313e81fae910265f080e38a9591b8"
     },
     {
       "source": "skills/sdd-setup/references/land.md",
@@ -124,7 +124,7 @@
     {
       "source": "skills/sdd-setup/references/upgrade.md",
       "destination": ".agents/skills/sdd-setup/references/upgrade.md",
-      "sha256": "5791559eced75169edb78c903e4f0bef80d6ad7eb3629afda888e6dd80eb8af3"
+      "sha256": "699e65432da54b91bfae7f386fac27c1296c86c56c2ae71524e2dd400f149aec"
     },
     {
       "source": "skills/sdd-write-docs/SKILL.md",
@@ -152,8 +152,8 @@
     {
       "source": "instance/seeds/markdownlint-cli2.jsonc",
       "destination": ".markdownlint-cli2.jsonc",
-      "sha256": "6d7a0b6732b4586cf5a184866d6dfbcd2395523bdf9e3fedb34a7ab536f94fac",
-      "baseline_sha256": "72f5c3e20608b41ca623503a9168b1b8423179a58058927a909e520a67f7599b"
+      "sha256": "113d6d4355a6bdd8f56059210575fa289155c95698b1ece536da0aef1ffa0397",
+      "baseline_sha256": "6e31baea2f33322eca8dd947c040dde52ba67428b1893005ff2fe9b4e09fcc82"
     },
     {
       "source": "instance/payload/_docs/specs/SPEC-budget-debt.md",
@@ -283,7 +283,7 @@
     },
     {
       "path": "AGENTS.md",
-      "marker_hash": "53aa34595cee8b31f929f695a0037d923fdfe5b09f50b47838baaf6c35e0a7a2"
+      "marker_hash": "99e3488a9115f6be9cff01b17bd5d5372df2153ee8c63d86d8820a2a4fcc5cad"
     }
   ]
 }
