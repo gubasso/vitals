@@ -9,7 +9,9 @@
 # `exobrain`, and `uv run` work inside it.
 #
 # Each step names its hook stage and leaves out the hooks of the group
-# local-only, which CI cannot run.
+# local-only, which CI cannot run. The configuration declares the scope of
+# each hook, so no step sets SKIP. No hook carries the group ci-only, so the
+# job runs no manual step: prek refuses a --group that matches no hook.
 name: ci
 
 on:
@@ -23,10 +25,6 @@ permissions:
 jobs:
   hooks:
     runs-on: ubuntu-latest
-    env:
-      # A CI checkout is detached on the main worktree, so the two guards of the
-      # local branch workflow do not apply here (rk method worktrees).
-      SKIP: no-commit-to-branch,rk-worktree-location
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -64,6 +62,6 @@ jobs:
           tar -xJf "$RUNNER_TEMP/$asset" -C "$RUNNER_TEMP/exobrain" --strip-components=1
           echo "$RUNNER_TEMP/exobrain" >> "$GITHUB_PATH"
       - name: pre-commit stage
-        run: nix develop --command prek run --all-files --hook-stage pre-commit --no-group local-only --show-diff-on-failure
+        run: nix develop --command prek run --all-files --stage pre-commit --no-group local-only --show-diff-on-failure
       - name: pre-push stage
-        run: nix develop --command prek run --all-files --hook-stage pre-push --no-group local-only
+        run: nix develop --command prek run --all-files --stage pre-push --no-group local-only

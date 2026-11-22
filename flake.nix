@@ -24,7 +24,7 @@
     # `rk self-depend sync --apply` from a shell. Run `rk upgrade` when the
     # new release moves the landed files.
     release-kit = {
-      url = "github:gubasso/release-kit/v0.10.1";
+      url = "github:gubasso/release-kit/v0.10.3";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.release-kit.follows = "";
       inputs.spec-driven-docs.follows = "spec-driven-docs";
