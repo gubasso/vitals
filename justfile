@@ -2,8 +2,8 @@
 # direnv activated, or as `direnv exec . just <recipe>`.
 
 # The host tools of every recipe, checked once before any recipe runs. The list
-# lives in host-requirements.toml, and exobrain from the devShell reads it
-# (https://github.com/gubasso/exobrain-tech/blob/v1.1.0/programming/project-bootstrap/03-local-dev-environment.md#host-requirements).
+# lives in host-requirements.toml, and the exobrain of the host reads it
+# (https://github.com/gubasso/exobrain-tech/blob/v1.2.0/programming/project-bootstrap/03-local-dev-environment.md#host-requirements).
 # A recipe that alone uses a host tool checks it as its first line.
 _host := shell("exobrain host-check git uv")
 

@@ -22,3 +22,9 @@ version = "*"
 # minimum_prek_version in .pre-commit-config.yaml, so this file names no floor.
 [tools.prek]
 version = "*"
+
+# The checker of every recipe, the host-requirements and hook-revisions hooks,
+# and the two warnings of .envrc. 1.2.0 is the first release that carries
+# `exobrain hooks check`, which hook-revisions runs.
+[tools.exobrain]
+version = ">=1.2.0"

@@ -103,8 +103,11 @@ repos:
         entry: rk status --check --target .
         files: '^(\.github/workflows/|\.gitlab-ci\.yml$|\.gitlab/ci/|AGENTS\.md$|\.release-kit/|\.pre-commit-config\.yaml$|release-plz\.toml$|dist-workspace\.toml$|cliff\.toml$|VERSION$)'
 # END release-kit
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
+  # The prek built-in hooks of the common reference set of exobrain-tech. prek
+  # runs them in its own binary: no clone, no environment, and no `rev`
+  # (https://prek.j178.dev/0.5.7/reference/built-in-hooks/). An argument of
+  # the set restores what the upstream pre-commit-hooks judged by default.
+  - repo: builtin
     hooks:
       # A generated file follows its generator, so no fixer rewrites it: the
       # uv and Nix locks, the UI snapshots, and the files that release-kit and
@@ -113,6 +116,7 @@ repos:
       # Upstream also runs some of these hooks at pre-push, so `stages:` keeps
       # each one at pre-commit and in the manual union, never twice per push.
       - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
         stages: &commit-only [pre-commit, pre-merge-commit, manual]
         exclude: &generated ^(uv\.lock$|flake\.lock$|tests/.*/__snapshots__/|GLOSSARY\.md$|\.release-kit/manifest\.json$|\.spec-driven-docs/manifest\.json$|\.(claude|agents)/skills/(rk-release|rk-setup|sdd-setup|sdd-write-docs)/)
       - id: end-of-file-fixer
@@ -122,19 +126,33 @@ repos:
         stages: *commit-only
         args: [--fix=lf]
         exclude: *generated
+      # Without the argument the hook passes outside a merge or a rebase.
       - id: check-merge-conflict
+        args: [--assume-in-merge]
         stages: *commit-only
       - id: check-case-conflict
+        stages: *commit-only
+      - id: check-symlinks
+        stages: *commit-only
+      - id: destroyed-symlinks
         stages: *commit-only
       - id: check-executables-have-shebangs
         stages: *commit-only
       - id: check-shebang-scripts-are-executable
         stages: *commit-only
       - id: check-added-large-files
+        args: [--maxkb=2048]
         stages: *commit-only
+      # The built-in accepts an unknown tag unless it gets the argument.
       - id: check-yaml
+        args: [--disallow-unknown-tags]
         stages: *commit-only
-      - id: check-json
+      # check-json5 parses JSON with comments, such as dprint.json and
+      # .markdownlint-cli2.jsonc. `types` resets the filter, and `types_or`
+      # selects json, json5, and jsonc.
+      - id: check-json5
+        types: [file]
+        types_or: [json, json5, jsonc]
         stages: *commit-only
       - id: check-toml
         stages: *commit-only
@@ -144,7 +162,7 @@ repos:
   # ruff formats and lints Python. Its configuration is [tool.ruff] of
   # pyproject.toml, and this rev pins the version.
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.17.4
+    rev: v0.17.5
     hooks:
       - id: ruff-format
       - id: ruff-check
@@ -160,16 +178,23 @@ repos:
   # The hooks that exobrain-tech publishes. A flake reference reads the git
   # tree of a checkout, never a path copy of the whole folder into the Nix
   # store, and a flake holds no git hook runner, because the host supplies
-  # prek.
+  # prek. `exobrain hooks sync --to <tag>` alone moves the rev of this entry
+  # and of each repository of the named sets.
   - repo: https://github.com/gubasso/exobrain-tech
-    rev: v1.1.0
+    rev: v1.2.0
     hooks:
       - id: no-path-flake-reference
       - id: no-hook-runner-in-flake
-      # owner: devshell (no-hook-language) exobrain-tech publishes this hook
-      # only as `system`. It runs `exobrain host-check --parse-only` from the
-      # flake devShell each time host-requirements.toml changes.
+      # owner: host (host-tool) exobrain-tech publishes this hook only as
+      # `system`. It runs `exobrain host-check --parse-only` of the host each
+      # time host-requirements.toml changes.
       - id: host-requirements
+      # owner: host (host-tool) exobrain-tech publishes this hook only as
+      # `system`. It runs `exobrain hooks check` of the host, 1.2.0 or newer,
+      # and holds the rev of each repository that the named reference sets
+      # share with this file to the sets of the exobrain-tech tag above.
+      - id: hook-revisions
+        args: [--set, common, --set, python, --set, nix]
 
   - repo: local
     hooks:

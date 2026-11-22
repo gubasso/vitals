@@ -13,7 +13,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.spec-driven-docs.follows = "";
       inputs.release-kit.follows = "release-kit";
-      inputs.exobrain-tech.follows = "exobrain-tech";
+      # Its exobrain serves only its own devShell, and the host supplies the
+      # CLI here, so the lock carries no copy of exobrain-tech.
+      inputs.exobrain-tech.follows = "";
     };
 
     # The branch workflow of the repository (rk): worktrees, local squash
@@ -26,17 +28,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.release-kit.follows = "";
       inputs.spec-driven-docs.follows = "spec-driven-docs";
-      inputs.exobrain-tech.follows = "exobrain-tech";
-    };
-
-    # The canon's checker (exobrain): `exobrain host-check` checks the tools of
-    # host-requirements.toml for the justfile and the host-requirements hook.
-    exobrain-tech = {
-      url = "github:gubasso/exobrain-tech/v1.1.0";
-      inputs.nixpkgs.follows = "nixpkgs";
-      # Its rk and sdd serve only its own devShell, so it takes these.
-      inputs.release-kit.follows = "release-kit";
-      inputs.spec-driven-docs.follows = "spec-driven-docs";
+      # Its exobrain serves only its own devShell, and the host supplies the
+      # CLI here, so the lock carries no copy of exobrain-tech.
+      inputs.exobrain-tech.follows = "";
     };
 
     # The package build reads uv.lock, so the flake holds no Python library of
@@ -67,7 +61,6 @@
       pyproject-build-systems,
       release-kit,
       spec-driven-docs,
-      exobrain-tech,
       ...
     }:
     let
@@ -115,8 +108,8 @@
         meta.description = "A terminal dashboard of the machine's vital signs";
       };
 
-      # The host supplies uv, and uv owns the Python interpreter, so the
-      # devshell holds only the project tools.
+      # The host supplies uv, prek, and exobrain, and uv owns the Python
+      # interpreter, so the devshell holds only the project tools.
       devShells.${system}.default = pkgs.mkShell {
         packages = [
           # The command surface. The host supplies the hook runner prek.
@@ -133,9 +126,6 @@
           release-kit.packages.${system}.default
           # sdd, the docs gate: its hooks, `sdd verify`, and `sdd status`.
           spec-driven-docs.packages.${system}.default
-          # exobrain, the host-tool checker of the justfile and of the
-          # host-requirements hook.
-          exobrain-tech.packages.${system}.default
         ];
       };
 

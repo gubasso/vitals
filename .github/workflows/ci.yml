@@ -2,10 +2,14 @@
 # of its own, so a push that passed its hooks passes CI.
 #
 # The runner is a host, so it gets the host tools that the project needs, as a
-# developer machine does: Nix for the devshell, the hook runner prek, and uv,
-# which installs the Python of .python-version and the venv from uv.lock. The
-# devshell holds neither prek, uv, nor a Python, and `nix develop` keeps the
-# PATH of the runner, so `prek run` and `uv run` work inside it.
+# developer machine does: Nix for the devshell, the hook runner prek, the
+# exobrain CLI, and uv, which installs the Python of .python-version and the
+# venv from uv.lock. The devshell holds neither prek, exobrain, uv, nor a
+# Python, and `nix develop` keeps the PATH of the runner, so `prek run`,
+# `exobrain`, and `uv run` work inside it.
+#
+# Each step names its hook stage and leaves out the hooks of the group
+# local-only, which CI cannot run.
 name: ci
 
 on:
@@ -44,7 +48,22 @@ jobs:
           install-only: true
           prek-version: '0.5.10'
           sha256: '5c832a9ccd0855b7c054320d8921d90165a37459d3ac175923bdf121ff1aa9b1'
+      # The hooks host-requirements and hook-revisions call exobrain. The tag
+      # comes from the exobrain-tech entry of .pre-commit-config.yaml, so CI
+      # runs the CLI of the release that the project pins, and the attestation
+      # proves that the release workflow of exobrain-tech built the archive.
+      - name: Install the exobrain CLI of the pinned exobrain-tech tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag=$(yq '.repos[] | select(.repo | test("/exobrain-tech(\.git)?/?$")) | .rev' .pre-commit-config.yaml)
+          asset=exobrain-x86_64-unknown-linux-gnu.tar.xz
+          gh release download "$tag" --repo gubasso/exobrain-tech --pattern "$asset" --dir "$RUNNER_TEMP"
+          gh attestation verify "$RUNNER_TEMP/$asset" --repo gubasso/exobrain-tech
+          mkdir -p "$RUNNER_TEMP/exobrain"
+          tar -xJf "$RUNNER_TEMP/$asset" -C "$RUNNER_TEMP/exobrain" --strip-components=1
+          echo "$RUNNER_TEMP/exobrain" >> "$GITHUB_PATH"
       - name: pre-commit stage
-        run: nix develop --command prek run --all-files --show-diff-on-failure
+        run: nix develop --command prek run --all-files --hook-stage pre-commit --no-group local-only --show-diff-on-failure
       - name: pre-push stage
-        run: nix develop --command prek run --all-files --hook-stage pre-push
+        run: nix develop --command prek run --all-files --hook-stage pre-push --no-group local-only
