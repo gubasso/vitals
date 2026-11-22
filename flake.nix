@@ -28,9 +28,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.release-kit.follows = "";
       inputs.spec-driven-docs.follows = "spec-driven-docs";
-      # Its exobrain serves only its own devShell, and the host supplies the
-      # CLI here, so the lock carries no copy of exobrain-tech.
-      inputs.exobrain-tech.follows = "";
     };
 
     # The package build reads uv.lock, so the flake holds no Python library of
