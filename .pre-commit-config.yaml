@@ -194,7 +194,7 @@ repos:
   # prek. `exobrain hooks sync --to <tag>` alone moves the rev of this entry
   # and of each repository of the named sets.
   - repo: https://github.com/gubasso/exobrain-tech
-    rev: v1.2.0
+    rev: v2.0.0
     hooks:
       - id: no-path-flake-reference
       - id: no-hook-runner-in-flake

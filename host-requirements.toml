@@ -24,7 +24,7 @@ version = "*"
 version = "*"
 
 # The checker of every recipe, the host-requirements and hook-revisions hooks,
-# and the two warnings of .envrc. 1.2.0 is the first release that carries
-# `exobrain hooks check`, which hook-revisions runs.
+# and the `exobrain outdated` and `exobrain store-guard` lines of .envrc. 2.0.0
+# is the first release that carries `exobrain outdated`, which .envrc runs.
 [tools.exobrain]
-version = ">=1.2.0"
+version = ">=2.0.0"
